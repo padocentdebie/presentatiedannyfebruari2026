@@ -8,69 +8,62 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         :root { --polblauw: #1d4e89; --goud: #f9d423; --bg: #f4f7f9; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* Navigatie & Header */
-        header { background: var(--polblauw); color: white; padding: 15px; text-align: center; position: relative; }
+        header { background: var(--polblauw); color: white; padding: 15px; text-align: center; position: relative; font-weight: bold; }
         #reset-btn { position: absolute; right: 10px; top: 10px; background: #e53e3e; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; font-size: 12px; }
         
         .screen { display: none; flex-direction: column; flex-grow: 1; padding: 20px; overflow-y: auto; }
         .active { display: flex; }
 
-        /* Content Styles */
         .slide-content { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; border-left: 5px solid var(--goud); }
         h2 { color: var(--polblauw); margin-top: 0; }
-        ul { line-height: 1.6; }
 
-        /* Interactie & Feed */
         .interaction-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        textarea { width: 100%; height: 80px; padding: 10px; border: 2px solid #ddd; border-radius: 4px; resize: none; font-size: 16px; }
-        button.send-btn { background: var(--polblauw); color: white; border: none; padding: 10px; cursor: pointer; font-weight: bold; border-radius: 4px; }
+        textarea { width: 100%; height: 60px; padding: 10px; border: 2px solid #ddd; border-radius: 4px; resize: none; font-size: 16px; box-sizing: border-box; }
+        button.send-btn { background: var(--polblauw); color: white; border: none; padding: 12px; cursor: pointer; font-weight: bold; border-radius: 4px; }
         
-        .live-feed { background: #fff; border: 1px solid #ccc; border-radius: 4px; flex-grow: 1; overflow-y: auto; padding: 10px; max-height: 250px; }
-        .feed-item { border-bottom: 1px solid #eee; padding: 8px 0; font-size: 14px; }
+        .live-feed { background: #fff; border: 1px solid #ccc; border-radius: 4px; flex-grow: 1; overflow-y: auto; padding: 15px; min-height: 150px; }
+        .feed-item { border-bottom: 1px solid #eee; padding: 10px 0; font-size: 14px; }
         .feed-name { font-weight: bold; color: var(--polblauw); margin-right: 5px; }
 
-        /* Navigatieknoppen */
-        .nav-controls { display: flex; justify-content: space-between; padding: 20px; background: white; border-top: 1px solid #ddd; }
-        .nav-btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .nav-controls { display: none; justify-content: space-between; padding: 15px; background: white; border-top: 1px solid #ddd; }
+        .nav-btn { padding: 12px 25px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .prev { background: #ccc; }
         .next { background: var(--goud); color: #000; }
         
-        /* Login */
-        #login-screen { justify-content: center; align-items: center; }
+        #login-screen { justify-content: center; align-items: center; display: flex; height: 100%; }
         .login-card { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); text-align: center; }
-        input#student-name { padding: 12px; width: 250px; margin-bottom: 10px; border: 2px solid var(--polblauw); border-radius: 4px; }
+        input#student-name { padding: 12px; width: 250px; margin-bottom: 15px; border: 2px solid var(--polblauw); border-radius: 4px; font-size: 16px; }
     </style>
 </head>
 <body>
 
 <header>
-    <span id="current-slide-title">Politieacademie Les 1</span>
-    <button id="reset-btn" onclick="resetDatabase()">Database Reset</button>
+    <span id="current-slide-title">PV Simulator</span>
+    <button id="reset-btn" onclick="resetDatabase()">Reset Database</button>
 </header>
 
 <div id="screen-0" class="screen active">
     <div id="login-screen">
         <div class="login-card">
-            <h2>Welkom bij de les</h2>
-            <p>Log in met je voornaam om deel te nemen aan de interactieve sessie.</p>
+            <h2>Start Sessie</h2>
+            <p>Log in met je voornaam. (Docent: gebruik 'Admin')</p>
             <input type="text" id="student-name" placeholder="Je voornaam...">
             <br>
-            <button class="nav-btn next" onclick="login()">START LES</button>
+            <button class="nav-btn next" onclick="login()">DEELNEMEN</button>
         </div>
     </div>
 </div>
 
 <div id="screens-container"></div>
 
-<div class="nav-controls" id="nav-ui" style="display: none;">
-    <button class="nav-btn prev" onclick="changeSlide(-1)">VORIGE</button>
-    <button class="nav-btn next" onclick="changeSlide(1)">VOLGENDE</button>
+<div class="nav-controls" id="nav-ui">
+    <button class="nav-btn prev" onclick="changeSlide(-1)">VORIGE DIA</button>
+    <button class="nav-btn next" onclick="changeSlide(1)">VOLGENDE DIA</button>
 </div>
 
 <script>
-    // Firebase Configuratie
     const firebaseConfig = {
         apiKey: "AIzaSyA3_rzoZOWytlyAbYKKe_WuFlD8z2WvbX4",
         authDomain: "aangifteq2les1.firebaseapp.com",
@@ -87,20 +80,17 @@
     let studentName = "";
     let currentSlide = 0;
 
-    // Slide Data vanuit PowerPoint bronnen
     const slides = [
-        { title: "Terugblik aangifte", content: "Wat weten jullie nog? <ul><li>O.v.t.</li><li>R.v.w. – strafbare feit</li><li>Inleiding / kern / slot</li><li>Woorden van de aangever</li></ul>" },
-        { title: "Formele Eisen PV", content: "Een goed proces-verbaal is: <ul><li>In de woorden van de aangever!</li><li>Ik-vorm</li><li>Gedagtekend & ondertekend</li><li>Persoonlijk opgemaakt</li></ul>" },
-        { title: "Opbouw & Structuur", content: "Denk aan: <ul><li>Decor / locatiebeschrijving</li><li>Alinea’s (min. 3)</li><li>Logisch-chronologisch</li><li>Duidelijke data en tijdstippen</li></ul>" },
-        { title: "PV van Bevindingen", content: "Binnen de Politieacademie doen wij PV MET bevindingen. Het wordt dus geschreven in de ‘Ik’ vorm…." },
-        { title: "Stappenplan Aanhouding", content: "1. Hoedanigheid & rechtmatigheid<br>2. Feiten/omstandigheden<br>3. Aanhouden<br>4. Cautie/Consultatie<br>5. Inbeslagname & Onderzoek" },
-        { title: "Hoedanigheid", content: "Voorbeeld: 'Op dag datum en tijd was ik samen met collega A. op de Loes van Overeemlaan te Leusden. Wij waren belast met noodhulpsurveillance...'" },
-        { title: "Feiten & Omstandigheden", content: "Wat heb je waargenomen dat maakt dat de persoon verdachte (art. 27 SV) is? Gebruik de redenen van wetenschap!" },
-        { title: "Aanhouden", content: "De dag datum en het exacte tijdstip van de mededeling aan de verdachte dat hij/zij is aangehouden voor een bepaald strafbaar feit." },
-        { title: "Cautie & Consultatie", content: "Vertel de verdachte dat hij niet tot antwoorden verplicht is en recht heeft op een raadsman. Noteer ook de reactie!" },
-        { title: "Onderzoek & Beslag", content: "Onderzoek aan de kleding: Op grond van welke wetgeving? Wat trof je aan? Inbeslagname: expliciet vermelden indien van belang." },
-        { title: "Overbrengen & Voorgeleiding", content: "Beschrijf het doel van de voorgeleiding en de verplaatsing naar het bureau." },
-        { title: "De Casus (Video)", content: "Bekijk de aanhouding in Den Haag. Schrijf vanuit jouw beleving (IK-vorm). <b>Geen andere collega toevoegen!</b>" }
+        { title: "Terugblik aangifte", content: "Wat weten jullie nog? [cite: 2] <ul><li>o.v.t. [cite: 3]</li><li>r.v.w. – strafbare feit [cite: 4]</li><li>Inleiding / kern / slot [cite: 5]</li><li>Woorden van de aangever [cite: 6]</li></ul>" },
+        { title: "Vormvoorschriften", content: "Een PV is: [cite: 7] <ul><li>In de woorden van de aangever [cite: 8]</li><li>Ik-vorm [cite: 9]</li><li>Persoonlijk opgemaakt [cite: 12]</li></ul>" },
+        { title: "Opbouw Beschrijving", content: "Belangrijk: <ul><li>Decor / locatiebeschrijving (los van gebeurtenis) [cite: 16]</li><li>Logisch-chronologisch [cite: 18]</li><li>Minimaal 3 alinea's [cite: 17]</li></ul>" },
+        { title: "PV van Bevindingen", content: "Binnen de Politieacademie schrijven we PV MET bevindingen in de 'Ik'-vorm. [cite: 29, 30]" },
+        { title: "Stappenplan Aanhouding", content: "Essentiële stappen: [cite: 32] <ul><li>Hoedanigheid en rechtmatigheid [cite: 33]</li><li>Cautie/Consultatiebijstand [cite: 36]</li><li>Onderzoek aan de kleding [cite: 38]</li></ul>" },
+        { title: "Hoedanigheid", content: "Voorbeeld: 'Op dag datum en tijd was ik samen met collega A. (hgl001) op de Loes van Overeemlaan te Leusden.' [cite: 43]" },
+        { title: "Feiten & Omstandigheden", content: "Wat heb je waargenomen dat maakt dat de persoon verdachte (art. 27 SV) is? [cite: 48] Gebruik redenen van wetenschap! [cite: 49]" },
+        { title: "De Cautie", content: "Ik vertelde de verdachte dat hij niet tot antwoorden verplicht is en dat hij recht heeft op een raadsman. [cite: 55] + Reactie verdachte! [cite: 56]" },
+        { title: "Onderzoek Kleding", content: "Beschrijf op grond van welke wetgeving je onderzoekt en wat je aantreft. [cite: 58, 59]" },
+        { title: "De Casus (Video)", content: "Aanhouding Den Haag[cite: 83]. Schrijf vanuit JOUW beleving (ik-vorm). Geen collega toevoegen! [cite: 78, 79]" }
     ];
 
     function initScreens() {
@@ -116,12 +106,10 @@
                     <p>${slide.content}</p>
                 </div>
                 <div class="interaction-box">
-                    <textarea id="input-${slideIdx}" placeholder="Typ hier je input of antwoord..."></textarea>
-                    <button class="send-btn" onclick="sendData(${slideIdx})">VERSTUUR NAAR LIVE FEED</button>
+                    <textarea id="input-${slideIdx}" placeholder="Jouw bevindingen/antwoord..."></textarea>
+                    <button class="send-btn" onclick="sendData(${slideIdx})">DELEN MET DE GROEP</button>
                 </div>
-                <div class="live-feed" id="feed-${slideIdx}">
-                    <strong>Live Feed:</strong><br>
-                </div>
+                <div class="live-feed" id="feed-${slideIdx}"></div>
             `;
             container.appendChild(screen);
             listenToFeed(slideIdx);
@@ -130,25 +118,31 @@
 
     function login() {
         const nameInput = document.getElementById('student-name').value.trim();
-        if (nameInput) {
-            studentName = nameInput;
-            document.getElementById('screen-0').classList.remove('active');
-            currentSlide = 1;
-            document.getElementById(`screen-${currentSlide}`).classList.add('active');
+        if (!nameInput) return alert("Vul een naam in.");
+        
+        studentName = nameInput;
+        document.getElementById('screen-0').classList.remove('active');
+        
+        if (studentName === "Admin") {
             document.getElementById('nav-ui').style.display = 'flex';
-            updateTitle();
-        } else {
-            alert("Vul je naam in.");
         }
+
+        db.ref('les/config/currentSlide').on('value', (snapshot) => {
+            const syncSlide = snapshot.val() || 1;
+            if (currentSlide !== 0) {
+                document.getElementById(`screen-${currentSlide}`).classList.remove('active');
+            }
+            currentSlide = syncSlide;
+            document.getElementById(`screen-${currentSlide}`).classList.add('active');
+            updateTitle();
+        });
     }
 
     function changeSlide(direction) {
-        document.getElementById(`screen-${currentSlide}`).classList.remove('active');
-        currentSlide += direction;
-        if (currentSlide < 1) currentSlide = 1;
-        if (currentSlide > slides.length) currentSlide = slides.length;
-        document.getElementById(`screen-${currentSlide}`).classList.add('active');
-        updateTitle();
+        let newSlide = currentSlide + direction;
+        if (newSlide >= 1 && newSlide <= slides.length) {
+            db.ref('les/config').update({ currentSlide: newSlide });
+        }
     }
 
     function updateTitle() {
@@ -158,33 +152,28 @@
     function sendData(slideId) {
         const text = document.getElementById(`input-${slideId}`).value.trim();
         if (!text) return;
-        
-        db.ref(`les/slide_${slideId}`).push({
+        db.ref(`les/feed/slide_${slideId}`).push({
             name: studentName,
             message: text,
-            timestamp: Date.now()
+            ts: Date.now()
         });
         document.getElementById(`input-${slideId}`).value = "";
     }
 
     function listenToFeed(slideId) {
-        db.ref(`les/slide_${slideId}`).on('value', (snapshot) => {
+        db.ref(`les/feed/slide_${slideId}`).on('value', (snapshot) => {
             const feedDiv = document.getElementById(`feed-${slideId}`);
-            feedDiv.innerHTML = "<strong>Live Feed:</strong><br>";
+            feedDiv.innerHTML = "<strong>Inzendingen:</strong><br>";
             snapshot.forEach((child) => {
                 const data = child.val();
-                feedDiv.innerHTML += `
-                    <div class="feed-item">
-                        <span class="feed-name">${data.name}:</span> ${data.message}
-                    </div>
-                `;
+                feedDiv.innerHTML += `<div class="feed-item"><span class="feed-name">${data.name}:</span> ${data.message}</div>`;
             });
             feedDiv.scrollTop = feedDiv.scrollHeight;
         });
     }
 
     function resetDatabase() {
-        if(confirm("Weet je zeker dat je alle data van deze les wilt wissen?")) {
+        if(confirm("Alle inzendingen en slide-positie wissen?")) {
             db.ref('les').remove();
             location.reload();
         }
